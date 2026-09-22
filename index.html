@@ -1,0 +1,383 @@
+<!DOCTYP<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحتي الشخصية المميزة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #0b0f19;
+            background-image: var(--bg-image, none);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .playing-pulse {
+            animation: pulse-slow 2s infinite;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 relative">
+
+    <!-- شريط التحكم العلوي -->
+    <div class="absolute top-4 left-4 right-4 flex justify-between items-center z-40 px-2">
+        <button onclick="toggleSettings()" class="glass-card px-4 py-2 rounded-xl text-xs flex items-center gap-2 hover:bg-slate-800 transition shadow-lg text-indigo-400 font-bold">
+            <i class="fa-solid fa-gear text-sm"></i>
+            <span>لوحة التحكم والتعديل</span>
+        </button>
+
+        <div class="flex items-center gap-2">
+            <label for="bg-upload" class="cursor-pointer glass-card px-3 py-2 rounded-xl text-xs flex items-center gap-2 hover:bg-slate-800 transition text-gray-300" title="تغيير الخلفية">
+                <i class="fa-solid fa-image text-indigo-400"></i>
+            </label>
+            <input type="file" id="bg-upload" accept="image/*" class="hidden" onchange="changeBackground(event)">
+
+            <!-- أزرار التحكم في الصوت -->
+            <div class="glass-card px-3 py-2 rounded-xl flex items-center gap-2">
+                <button id="audio-btn" onclick="toggleAudio()" class="text-pink-400 hover:text-pink-300 transition text-xs">
+                    <i id="audio-icon" class="fa-solid fa-play"></i>
+                </button>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="1" onchange="changeVolume(this.value)" oninput="changeVolume(this.value)" class="w-16 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-pink-500">
+            </div>
+        </div>
+    </div>
+
+    <audio id="bg-audio" loop></audio>
+
+    <!-- المحتوى الرئيسي للموقع -->
+    <div class="w-full max-w-md mx-auto text-center space-y-6 mt-16">
+        
+        <!-- البطاقة الشخصية -->
+        <div class="glass-card p-6 rounded-3xl relative overflow-hidden transition-all duration-300">
+            <div class="absolute -top-16 -right-16 w-36 h-36 bg-indigo-600 rounded-full filter blur-3xl opacity-20"></div>
+            
+            <img id="display-avatar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120" alt="صورة الملف الشخصي" class="w-24 h-24 rounded-full mx-auto border-2 border-indigo-500/50 p-1 object-cover mb-4 shadow-xl">
+            
+            <h1 id="display-name" class="text-2xl font-black tracking-wide text-white">اسمك هنا</h1>
+            <p id="display-bio" class="text-gray-400 text-sm mt-1">اضغط على "لوحة التحكم" بالأعلى لتعديل معلوماتك وربط حساباتك ✨</p>
+            
+            <div class="mt-4 inline-flex items-center gap-2 bg-slate-900/60 px-3 py-1 rounded-full text-xs text-indigo-400 border border-slate-700/50">
+                <i class="fa-solid fa-eye"></i>
+                <span id="view-count">1,337 مشاهدة</span>
+            </div>
+        </div>
+
+        <!-- أزرار منصات التواصل الاجتماعي -->
+        <div id="links-container" class="space-y-3"></div>
+
+        <footer class="text-xs text-gray-500 pt-2">
+            Designed with 💜 &bull; 2026
+        </footer>
+    </div>
+
+    <!-- لوحة التحكم الجانبية -->
+    <div id="settings-drawer" class="fixed inset-y-0 right-0 w-full sm:w-96 glass-card border-l border-slate-700 z-50 transform translate-x-full transition-transform duration-300 flex flex-col p-6 overflow-y-auto">
+        
+        <div class="flex justify-between items-center pb-4 border-b border-slate-700/60 mb-6">
+            <h2 class="text-lg font-bold text-indigo-400"><i class="fa-solid fa-sliders ml-2"></i> لوحة التعديل والتحكم</h2>
+            <button onclick="toggleSettings()" class="text-gray-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="space-y-4 text-right text-xs flex-1">
+            
+            <div class="space-y-2">
+                <label class="text-gray-300 font-semibold block">الاسم الشخصي:</label>
+                <input type="text" id="input-name" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-gray-300 font-semibold block">النبذة التعريفية (Bio):</label>
+                <textarea id="input-bio" rows="2" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500 resize-none"></textarea>
+            </div>
+
+            <!-- رفع الصورة الشخصية من الجهاز مباشرة -->
+            <div class="space-y-2">
+                <label class="text-gray-300 font-semibold block">صورة الملف الشخصي:</label>
+                <input type="file" id="input-avatar-file" accept="image/*" class="w-full text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer">
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-gray-300 font-semibold block">ارفع أغنية خلفية (MP3):</label>
+                <input type="file" accept="audio/*" onchange="changeAudio(event)" class="w-full text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer">
+            </div>
+
+            <hr class="border-slate-700/60 my-4">
+
+            <h3 class="text-sm font-bold text-indigo-300 mb-2">إدارة منصات التواصل والروابط:</h3>
+            <p class="text-[10px] text-gray-400 mb-2">يمكنك كتابة الرابط كاملاً أو يوزرك فقط (مثال: tw6.4)</p>
+
+            <!-- تيك توك -->
+            <div class="bg-slate-900/40 p-3 rounded-xl border border-slate-800 space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-white"><i class="fa-brands fa-tiktok text-pink-400 ml-1"></i> تيك توك (TikTok)</span>
+                    <input type="checkbox" id="en-tiktok" class="w-4 h-4 accent-indigo-500 cursor-pointer">
+                </div>
+                <input type="text" id="input-tiktok" placeholder="مثال: tw6.4 أو الرابط الكامل" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white">
+            </div>
+
+            <!-- انستغرام -->
+            <div class="bg-slate-900/40 p-3 rounded-xl border border-slate-800 space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-white"><i class="fa-brands fa-instagram text-purple-400 ml-1"></i> انستغرام (Instagram)</span>
+                    <input type="checkbox" id="en-instagram" class="w-4 h-4 accent-indigo-500 cursor-pointer">
+                </div>
+                <input type="text" id="input-instagram" placeholder="مثال: username أو الرابط الكامل" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white">
+            </div>
+
+            <!-- تويتر / إكس -->
+            <div class="bg-slate-900/40 p-3 rounded-xl border border-slate-800 space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-white"><i class="fa-brands fa-x-twitter text-white ml-1"></i> تويتر (X)</span>
+                    <input type="checkbox" id="en-twitter" class="w-4 h-4 accent-indigo-500 cursor-pointer">
+                </div>
+                <input type="text" id="input-twitter" placeholder="مثال: username أو الرابط الكامل" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white">
+            </div>
+
+            <!-- تليجرام -->
+            <div class="bg-slate-900/40 p-3 rounded-xl border border-slate-800 space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-white"><i class="fa-brands fa-telegram text-blue-400 ml-1"></i> تليجرام (Telegram)</span>
+                    <input type="checkbox" id="en-telegram" class="w-4 h-4 accent-indigo-500 cursor-pointer">
+                </div>
+                <input type="text" id="input-telegram" placeholder="مثال: channel_name أو الرابط الكامل" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white">
+            </div>
+
+            <!-- ديسكورد -->
+            <div class="bg-slate-900/40 p-3 rounded-xl border border-slate-800 space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-white"><i class="fa-brands fa-discord text-indigo-400 ml-1"></i> ديسكورد (Discord)</span>
+                    <input type="checkbox" id="en-discord" class="w-4 h-4 accent-indigo-500 cursor-pointer">
+                </div>
+                <input type="text" id="input-discord" placeholder="رابط دعوة السيرفر" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white">
+            </div>
+
+            <button onclick="saveSettings()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition shadow-lg mt-4">
+                حفظ التغييرات وتطبيقها ✨
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const audioElem = document.getElementById('bg-audio');
+        const audioIcon = document.getElementById('audio-icon');
+        const audioBtn = document.getElementById('audio-btn');
+        const volumeSlider = document.getElementById('volume-slider');
+        let isPlaying = false;
+
+        let siteData = {
+            name: "اسمك هنا",
+            bio: "أضف نبذتك التعريفية من لوحة التحكم بالأعلى ✨",
+            avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120",
+            platforms: {
+                tiktok: { enabled: true, url: "#", name: "TikTok", icon: "fa-brands fa-tiktok", color: "text-pink-400", bg: "bg-pink-500/20" },
+                instagram: { enabled: true, url: "#", name: "Instagram", icon: "fa-brands fa-instagram", color: "text-purple-400", bg: "bg-purple-500/20" },
+                twitter: { enabled: true, url: "#", name: "Twitter (X)", icon: "fa-brands fa-x-twitter", color: "text-white", bg: "bg-gray-500/20" },
+                telegram: { enabled: true, url: "#", name: "Telegram", icon: "fa-brands fa-telegram", color: "text-blue-400", bg: "bg-blue-500/20" },
+                discord: { enabled: true, url: "#", name: "Discord", icon: "fa-brands fa-discord", color: "text-indigo-400", bg: "bg-indigo-500/20" }
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('guns_lol_data');
+            if (saved) {
+                try { siteData = JSON.parse(saved); } catch(e) {}
+            }
+            
+            const savedBg = localStorage.getItem('guns_lol_bg');
+            if (savedBg) {
+                document.documentElement.style.setProperty('--bg-image', `url(${savedBg})`);
+            }
+
+            const savedAudio = localStorage.getItem('guns_lol_audio');
+            if (savedAudio) {
+                audioElem.src = savedAudio;
+            }
+
+            audioElem.volume = volumeSlider.value;
+            renderSite();
+            loadToDrawer();
+        });
+
+        function toggleSettings() {
+            const drawer = document.getElementById('settings-drawer');
+            drawer.classList.toggle('translate-x-full');
+        }
+
+        function loadToDrawer() {
+            document.getElementById('input-name').value = siteData.name;
+            document.getElementById('input-bio').value = siteData.bio;
+
+            for (let key in siteData.platforms) {
+                const p = siteData.platforms[key];
+                const cb = document.getElementById(`en-${key}`);
+                const inp = document.getElementById(`input-${key}`);
+                if (cb) cb.checked = p.enabled;
+                if (inp) inp.value = p.url === "#" ? "" : p.url;
+            }
+        }
+
+        // دالة لمعالجة الروابط وتصحيحها في حال كتب المستخدم اليوزر فقط
+        function formatPlatformUrl(platform, inputVal) {
+            inputVal = inputVal.trim();
+            if (!inputVal || inputVal === "#") return "#";
+
+            // إذا كتب المستخدم الرابط كاملاً يحتوي على http يبقيه كما هو
+            if (inputVal.startsWith('http://') || inputVal.startsWith('https://')) {
+                return inputVal;
+            }
+
+            // إزالة الـ @ لو كانت موجودة في البداية
+            let cleanVal = inputVal.startsWith('@') ? inputVal.substring(1) : inputVal;
+
+            switch(platform) {
+                case 'tiktok':
+                    return `https://www.tiktok.com/@${cleanVal}`;
+                case 'instagram':
+                    return `https://www.instagram.com/${cleanVal}`;
+                case 'twitter':
+                    return `https://twitter.com/${cleanVal}`;
+                case 'telegram':
+                    return `https://t.me/${cleanVal}`;
+                case 'discord':
+                    return inputVal.startsWith('discord.gg/') || inputVal.startsWith('https://') ? `https://${inputVal.replace('https://', '')}` : `https://discord.gg/${cleanVal}`;
+                default:
+                    return inputVal;
+            }
+        }
+
+        function saveSettings() {
+            siteData.name = document.getElementById('input-name').value || "اسمك";
+            siteData.bio = document.getElementById('input-bio').value || "";
+
+            const avatarFile = document.getElementById('input-avatar-file').files[0];
+            if (avatarFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    siteData.avatar = e.target.result;
+                    finishSave();
+                };
+                reader.readAsDataURL(avatarFile);
+                return;
+            }
+            finishSave();
+        }
+
+        function finishSave() {
+            for (let key in siteData.platforms) {
+                const cb = document.getElementById(`en-${key}`);
+                const inp = document.getElementById(`input-${key}`);
+                if (cb) siteData.platforms[key].enabled = cb.checked;
+                if (inp) {
+                    siteData.platforms[key].url = formatPlatformUrl(key, inp.value);
+                }
+            }
+
+            localStorage.setItem('guns_lol_data', JSON.stringify(siteData));
+            renderSite();
+            toggleSettings();
+        }
+
+        function renderSite() {
+            document.getElementById('display-name').innerText = siteData.name;
+            document.getElementById('display-bio').innerText = siteData.bio;
+            document.getElementById('display-avatar').src = siteData.avatar;
+
+            const container = document.getElementById('links-container');
+            container.innerHTML = "";
+
+            for (let key in siteData.platforms) {
+                const p = siteData.platforms[key];
+                if (p.enabled && p.url && p.url !== "#") {
+                    container.innerHTML += `
+                        <a href="${p.url}" target="_blank" class="glass-card flex items-center justify-between p-4 rounded-xl hover:bg-slate-800/90 transition-all duration-300 transform hover:-translate-y-1 group">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg ${p.bg} flex items-center justify-center ${p.color} group-hover:scale-110 transition shadow-inner">
+                                    <i class="${p.icon} text-lg"></i>
+                                </div>
+                                <span class="font-medium text-white">${p.name}</span>
+                            </div>
+                            <i class="fa-solid fa-arrow-left text-gray-500 group-hover:text-white transition"></i>
+                        </a>
+                    `;
+                }
+            }
+        }
+
+        function changeBackground(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageUrl = e.target.result;
+                    document.documentElement.style.setProperty('--bg-image', `url(${imageUrl})`);
+                    localStorage.setItem('guns_lol_bg', imageUrl);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function changeAudio(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const audioUrl = e.target.result;
+                    audioElem.src = audioUrl;
+                    localStorage.setItem('guns_lol_audio', audioUrl);
+                    playAudio();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function toggleAudio() {
+            if (!audioElem.src || audioElem.src === window.location.href) {
+                alert("الرجاء رفع أغنية (MP3) من لوحة التحكم أولاً!");
+                return;
+            }
+            if (isPlaying) {
+                audioElem.pause();
+                audioIcon.className = "fa-solid fa-play";
+                audioBtn.classList.remove('playing-pulse');
+                isPlaying = false;
+            } else {
+                audioElem.play().then(() => {
+                    audioIcon.className = "fa-solid fa-pause";
+                    audioBtn.classList.add('playing-pulse');
+                    isPlaying = true;
+                }).catch(err => console.log(err));
+            }
+        }
+
+        function playAudio() {
+            audioElem.play().then(() => {
+                audioIcon.className = "fa-solid fa-pause";
+                audioBtn.classList.add('playing-pulse');
+                isPlaying = true;
+            }).catch(err => console.log(err));
+        }
+
+        function changeVolume(val) {
+            audioElem.volume = val;
+        }
+    </script>
+</body>
+</html>
